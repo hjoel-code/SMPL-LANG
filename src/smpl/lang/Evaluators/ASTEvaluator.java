@@ -4,12 +4,30 @@ import smpl.lang.SMPLProgram;
 import smpl.lang.Visitors.ASTVisitor;
 import smpl.sys.SMPLEnvironment;
 
-public class ASTEvaluator implements ASTVisitor<SMPLProgram, SMPLEnvironment, String> {
+public class ASTEvaluator implements ASTVisitor<SMPLProgram, SMPLEnvironment<String>, String> {
     
 
-    SMPLEnvironment env;
+    private final ArithEvaluator arithEval;
+    private final BoolEvaluator boolEval;
+    private final StringEvaluator strEval;
+    
 
-    public ASTEvaluator(SMPLEnvironment env) {
-        this.env = env;
+    public ASTEvaluator() {
+        arithEval = new ArithEvaluator(this);
+        boolEval = new BoolEvaluator(this);
+        strEval = new StringEvaluator(this);
+    }
+
+
+    public ArithEvaluator getArithEval() {
+        return arithEval;
+    }
+    
+    public BoolEvaluator getBoolEval() {
+        return boolEval;
+    }
+
+    public StringEvaluator getStrEval() {
+        return strEval;
     }
 }
