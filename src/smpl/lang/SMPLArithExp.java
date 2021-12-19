@@ -1,15 +1,15 @@
 package smpl.lang;
 
-public class SMPLArithExp extends SMPLExp {
+import smpl.lang.Visitors.*;
 
-
-    public <S, T> T visit(SMPLVisitor<S, T> v, S state) throws Exception {
-        return null;
-    }
-
-    public String toString() {
-        // TODO Auto-generated method stub
-        return super.toString();
-    }
+public abstract class SMPLArithExp extends ASTExp<SMPLArithExp> {
     
+
+    public abstract <S, T> T visit(ArithVisitor<S, T> v, S state) throws Exception;
+
+    @Override
+    public <S, T> T visit(ASTVisitor<SMPLArithExp, S, T> v, S state) throws Exception {
+        return visit((ArithVisitor<S, T> ) v, state);
+    }
+
 }

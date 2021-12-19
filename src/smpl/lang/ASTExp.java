@@ -1,5 +1,7 @@
 package smpl.lang;
 
+import smpl.lang.Visitors.ASTVisitor;
+
 public abstract class ASTExp<E extends ASTExp<E>> extends SMPLNode {
     
 

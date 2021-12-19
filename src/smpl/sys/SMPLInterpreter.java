@@ -8,6 +8,7 @@ import lib3652.util.Result;
 import lib3652.util.TokenException;
 
 import smpl.lang.*;
+import smpl.lang.Visitors.ASTVisitor;
 
 
 
@@ -17,6 +18,8 @@ public class SMPLInterpreter implements Interpreter {
     SMPLParser parser;
     boolean isVerbose = false;
     SMPLEnvironment globalEnv;
+
+    ASTVisitor<SMPLProgram, SMPLEnvironment, String> eval;
 
 
 
@@ -32,10 +35,12 @@ public class SMPLInterpreter implements Interpreter {
      * @param env Global Environment
      */
     public SMPLInterpreter(SMPLEnvironment env) {
+        eval = new ASTVisitor<SM();
         globalEnv = env;
     }
-
-    public void serVerbose(boolean isVerbose) {
+    
+    @Override
+    public void setVerbose(boolean isVerbose) {
         this.isVerbose = isVerbose;
     }
 
@@ -63,8 +68,9 @@ public class SMPLInterpreter implements Interpreter {
 
 
         try {
-            int r = program.eval(globalEnv);
-            return new Result(ResultType.V_INT, r);
+            int r = program.visit(eval, globalEnv);
+
+            return new Result(ResultType.V_STRING, r);
         } catch (Exception e) {
             if (isVerbose) {
             System.out.println(e.getMessage());

@@ -1,5 +1,8 @@
 package smpl.lang;
 
+import smpl.lang.Visitors.ASTVisitor;
+import smpl.lang.Visitors.SMPLVisitor;
+
 public abstract class SMPLExp extends ASTExp<SMPLExp> {
     
 

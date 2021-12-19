@@ -1,5 +1,7 @@
 package smpl.lang;
 
+import smpl.lang.Visitors.ASTVisitor;
+
 public class SMPLAssignment extends SMPLProgram {
     
 

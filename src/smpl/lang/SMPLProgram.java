@@ -1,6 +1,6 @@
 package smpl.lang;
 
-
+import smpl.lang.Visitors.ASTVisitor;
 
 public class SMPLProgram extends ASTExp<SMPLProgram> {
     
