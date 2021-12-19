@@ -8,6 +8,7 @@ import lib3652.util.Result;
 import lib3652.util.TokenException;
 
 import smpl.lang.*;
+import smpl.lang.Evaluators.ASTEvaluator;
 import smpl.lang.Visitors.ASTVisitor;
 
 
@@ -19,7 +20,7 @@ public class SMPLInterpreter implements Interpreter {
     boolean isVerbose = false;
     SMPLEnvironment globalEnv;
 
-    ASTVisitor<SMPLProgram, SMPLEnvironment, String> eval;
+    ASTEvaluator eval;
 
 
 
@@ -28,6 +29,9 @@ public class SMPLInterpreter implements Interpreter {
      */
     public SMPLInterpreter() {
         globalEnv = new SMPLEnvironment();
+        eval = new ASTEvaluator(globalEnv) {
+            
+        };
     }
 
     /**
@@ -35,7 +39,7 @@ public class SMPLInterpreter implements Interpreter {
      * @param env Global Environment
      */
     public SMPLInterpreter(SMPLEnvironment env) {
-        eval = new ASTVisitor<SM();
+        eval = new ASTEvaluator(env);
         globalEnv = env;
     }
     
@@ -68,7 +72,7 @@ public class SMPLInterpreter implements Interpreter {
 
 
         try {
-            int r = program.visit(eval, globalEnv);
+            String r = program.visit(eval, globalEnv);
 
             return new Result(ResultType.V_STRING, r);
         } catch (Exception e) {
