@@ -2,7 +2,6 @@ package smpl.lang.Evaluators;
 
 import java.util.HashMap;
 
-import smpl.lang.ArithOps;
 import smpl.lang.Visitors.ArithVisitor;
 import smpl.sys.SMPLEnvironment;
 

@@ -1,4 +1,4 @@
-package smpl.lang;
+package smpl.lang.Evaluators;
 
 public enum LogicOps implements Operators<Boolean, Boolean> {
     

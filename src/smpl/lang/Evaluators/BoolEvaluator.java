@@ -5,9 +5,6 @@ import java.util.HashMap;
 import smpl.lang.Visitors.BoolVisitor;
 import smpl.sys.SMPLEnvironment;
 
-import smpl.lang.BoolOps;
-import smpl.lang.LogicOps;
-
 public class BoolEvaluator implements BoolVisitor<SMPLEnvironment<Boolean>, Boolean> {
     
 

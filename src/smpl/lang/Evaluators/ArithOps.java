@@ -1,4 +1,4 @@
-package smpl.lang;
+package smpl.lang.Evaluators;
 
 public enum ArithOps implements Operators<Double, Double> {
      
