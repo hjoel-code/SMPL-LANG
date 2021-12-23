@@ -1,15 +1,14 @@
 package smpl.lang;
 
-import smpl.lang.Visitors.ASTVisitor;
+import smpl.lang.visitors.*;
+import smpl.sys.*;
+import smpl.values.*;
 
-public class SMPLAssignment extends SMPLProgram {
-    
-
+public class SMPLAssignment extends SMPLStatement {
     protected String var;
     protected ASTExp<SMPLExp> exp;
     
     public SMPLAssignment(String id, ASTExp<SMPLExp> exp) {
-        
         this.var = id;
         this.exp = exp;
     }
@@ -22,9 +21,9 @@ public class SMPLAssignment extends SMPLProgram {
         return this.exp;
     }
 
-    public <S, T> T visit(ASTVisitor<SMPLProgram, S, T> v, S state) throws Exception {
-        // TODO Auto-generated method stub
-        return super.visit(v, state);
+    @Override
+    public <S, T> T visit(SMPLVisitor<S, T> v, S arg) throws SMPLException {
+        return v.visitSMPLAssignment(this, arg);
     }
 
     public String toString() {

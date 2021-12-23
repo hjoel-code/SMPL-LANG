@@ -1,4 +1,4 @@
-package smpl.lang.Visitors;
+package smpl.lang.visitors;
 
 import smpl.lang.SMPLBoolExp;
 

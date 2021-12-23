@@ -1,8 +1,8 @@
-package smpl.lang.Evaluators;
+package smpl.lang.evaluators;
 
 import java.util.HashMap;
 
-import smpl.lang.Visitors.BoolVisitor;
+import smpl.lang.visitors.BoolVisitor;
 import smpl.sys.SMPLEnvironment;
 
 public class BoolEvaluator implements BoolVisitor<SMPLEnvironment<Boolean>, Boolean> {

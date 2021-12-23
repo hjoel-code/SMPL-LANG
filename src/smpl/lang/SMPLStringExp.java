@@ -1,7 +1,6 @@
 package smpl.lang;
 
-import smpl.lang.Visitors.ASTVisitor;
-import smpl.lang.Visitors.STRVisitor;
+import smpl.lang.visitors.*;
 
 public abstract class SMPLStringExp extends ASTExp<SMPLStringExp> {
 

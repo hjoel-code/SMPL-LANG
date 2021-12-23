@@ -1,10 +1,10 @@
 package smpl.lang;
 
-import smpl.lang.Visitors.ASTVisitor;
+import smpl.lang.*;
+import smpl.lang.visitors.ASTVisitor;
+import smpl.sys.SMPLException;
 
-public abstract class ASTExp<E extends ASTExp<E>> extends SMPLNode {
-    
-
+public abstract class ASTExp<E extends ASTExp<E>> extends ASTNode {
     /**
      * Call the appropriate visit... method in the visitor with this
      * object and the given argument.  In general, each visitor might
@@ -17,7 +17,7 @@ public abstract class ASTExp<E extends ASTExp<E>> extends SMPLNode {
      * @param state The state needed by the visitor
      * @return The return value of the visitor calling its method for visiting
      * statements.
-     * @throws Exception if the visitor encounters an error
+     * @throws SMPLException if the visitor encounters an error
      */
-    public abstract <S, T> T visit(ASTVisitor<E, S, T> v, S state) throws Exception;
+    public abstract <S, T> T visit(ASTVisitor<E, S, T> v, S state) throws SMPLException;
 }

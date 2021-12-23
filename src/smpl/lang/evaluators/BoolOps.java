@@ -1,4 +1,4 @@
-package smpl.lang.Evaluators;
+package smpl.lang.evaluators;
 
 public enum BoolOps implements Operators<Double, Boolean> {
     

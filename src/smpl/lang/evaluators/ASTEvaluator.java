@@ -1,7 +1,7 @@
-package smpl.lang.Evaluators;
+package smpl.lang.evaluators;
 
 import smpl.lang.SMPLProgram;
-import smpl.lang.Visitors.ASTVisitor;
+import smpl.lang.visitors.ASTVisitor;
 import smpl.sys.SMPLEnvironment;
 
 public class ASTEvaluator implements ASTVisitor<SMPLProgram, SMPLEnvironment<String>, String> {
@@ -11,7 +11,6 @@ public class ASTEvaluator implements ASTVisitor<SMPLProgram, SMPLEnvironment<Str
     private final BoolEvaluator boolEval;
     private final StringEvaluator strEval;
     
-
     public ASTEvaluator() {
         arithEval = new ArithEvaluator(this);
         boolEval = new BoolEvaluator(this);

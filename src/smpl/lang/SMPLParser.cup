@@ -1,0 +1,135 @@
+package smpl.lang;
+
+
+import java_cup.runtime.*;
+import java.io.*;
+import java.util.*;
+
+/* Preliminaries to set up and use the scanner.  */
+action code {:          :};
+
+parser code {:
+    SMPLLexer lexer;
+
+    public SMPLParser(SMPLLexer l) {
+                    super(l);
+                    lexer = l;
+                }
+
+    public SMPLParser(String file) throws FileNotFoundException {
+              this(new SMPLLexer(new FileReader(file)));
+    }
+
+                public SMPLParser(InputStream is) {
+                    this(new SMPLLexer(new InputStreamReader(is)));
+                }
+
+    public void report_error(String message, Object info) {
+        System.err.println(message + info);
+    }
+
+    public void syntax_error(Symbol cur_token) {
+        System.err.print("Line " + lexer.getLine() +
+             " near char " + lexer.getChar() + ": ");
+        report_error("Syntax error while reading: ", cur_token);
+        System.err.println ("Last token read is " +
+           lexer.getText());
+    }
+      :};
+
+init with {:
+    // No longer necessary    
+    :};
+scan with {:
+    try {
+        return lexer.next_token();
+    } catch (java.io.IOException ioe) {
+        System.out.println ("Unrecognised token at line: " + 
+                                lexer.getLine() + ", char: " + lexer.getChar());
+        System.out.println(ioe.getMessage());
+        throw ioe;
+    }
+    :};
+
+/* Terminals (tokens returned by the scanner). */
+
+/* Keywords */
+terminal ASSIGN;
+
+/* Arithmetic operators */ 
+terminal PLUS, MINUS, TIMES, DIV, MOD;
+
+/* Punctuation */
+terminal LPAREN, RPAREN, LBRACKET, RBRACKET, SEMI, COMMA, COLON;
+
+terminal Integer INTEGER;
+terminal Double REAL;
+terminal String VAR;
+terminal String STRING;
+
+/* Non terminals */
+non terminal SMPLProgram program;
+non terminal StmtSequence stmtList;
+non terminal SMPLStatement stmt;
+
+// non terminal SMPLFunCall funCall;
+non terminal ASTExp<SMPLExp> primitiveExp;
+
+/* *** Logic extensions (in support of IF) *** */
+// terminal String CMP;
+// terminal IF, ELSE;
+
+// place your extensions here, if you do this problem
+
+/* *** End of logic extensions *** */
+
+non terminal ASTExp<AIRExp> arithExp;
+non terminal ASTExp<AIRExp> arithTerm;
+non terminal ASTExp<AIRExp> arithConstFactor;
+non terminal ASTExp<AIRExp> arithFactor;
+
+non terminal ArrayList<ASTExp<AIRExp>> aExpList;   /* non-empty arith exp list */
+non terminal ArrayList<ASTExp<AIRExp>> aExpListE;  /* potentially empty arith exp list */
+non terminal ArrayList<ASTExp<SMPLExp>> pExpList;   /* non-empty painter exp list */
+non terminal ArrayList<ASTExp<SMPLExp>> pExpListE;  /* potentially empty painter exp list */
+
+non terminal ArrayList<String> paramList;
+non terminal ArrayList<String> paramListE;
+non terminal empty;
+
+
+/* Fill in the rest of your non terminal declarations here */
+
+/* Grammar rules */
+
+start with program;
+
+program ::= stmtList:seq {:
+    RESULT = new SMPLProgram(seq); :};
+
+stmtList ::= stmtList:seq stmt:s {:
+      seq.addStatement(s);
+      RESULT = seq; :} |
+       stmt:s {:
+      RESULT = new StmtSequence(s); :};
+
+stmt ::= VAR:id ASSIGN arithExp:e {: RESULT = new SMPLAssignment(id, e); :};
+
+arithExp ::= arithExp:e PLUS arithTerm:t {: RESULT = new ASTBinaryExp<AIRExp>("+", e, t); :} |
+             arithExp:e MINUS arithTerm:t {: RESULT = new ASTBinaryExp<AIRExp>("-", e, t); :} |
+             arithTerm:t {: RESULT = t; :};
+
+arithTerm ::= arithTerm:t TIMES arithFactor:f {: RESULT = new ASTBinaryExp<AIRExp>("*", t, f); :}|
+              arithTerm:t DIV arithFactor:f {: RESULT = new ASTBinaryExp<AIRExp>("/", t, f); :}|
+              arithTerm:t MOD arithFactor:f {: RESULT = new ASTBinaryExp<AIRExp>("%", t, f); :}|
+              arithFactor:f {: RESULT = f; :};
+
+arithConstFactor ::= INTEGER:ilit {: RESULT = new AIRExpInt(ilit); :} |
+                     LPAREN arithExp:e RPAREN {: RESULT = e; :};
+
+arithFactor ::= arithConstFactor:cf {: RESULT = cf; :} |
+                VAR:var {: RESULT = new ASTVar(var); :} |
+                MINUS arithFactor:f {: 
+                  RESULT = new ASTUnaryExp<AIRExp>("-", f); :};
+
+empty ::= ;
