@@ -2,14 +2,18 @@ package smpl.lang;
 
 import smpl.lang.visitors.*;
 import smpl.sys.*;
-import smpl.lang.evaluators.SMPLEvaluator;
-import smpl.values.*;
-import smpl.lang.*;
+import smpl.lang.evaluators.ASTEvaluator;
+import smpl.values.SMPLPrimitive;
 
-public class SMPLProgram extends SMPLExp {
+public class SMPLProgram extends ASTExp<SMPLProgram> {
     protected StmtSequence stmts;
 
+    public SMPLProgram() {
+        super("program");
+    }
+
     public SMPLProgram(StmtSequence stmts) {
+        this();
         this.stmts = stmts;
     }
 
@@ -17,7 +21,7 @@ public class SMPLProgram extends SMPLExp {
         return stmts;
     }
 
-    public <S, T> T visit(SMPLVisitor<S, T> v, S state) throws SMPLException {
+    public <S, T> T visit(ASTVisitor<SMPLProgram, S, T> v, S state) throws SMPLException {
         return v.visitSMPLProgram(this, state);
     }
 
@@ -30,10 +34,10 @@ public class SMPLProgram extends SMPLExp {
      * the last statement in the sequence of instructions in this
      * program.
      */
-    public SMPLPrimitive run(SMPLEvaluator interpreter) {
+    public SMPLPrimitive run(ASTEvaluator interpreter) {
         try {
             SMPLContext state = interpreter.mkInitialContext();
-            visit(interpreter, state);
+            this.visit(interpreter, state);
             return interpreter.getResult();
         } catch (SMPLException smple) {
             System.out.println("Error encountered: " + smple.report());

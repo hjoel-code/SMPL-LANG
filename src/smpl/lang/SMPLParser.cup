@@ -5,6 +5,16 @@ import java_cup.runtime.*;
 import java.io.*;
 import java.util.*;
 
+
+import smpl.lang.*;
+import smpl.lang.arith.*;
+import smpl.lang.bool.*;
+import smpl.lang.chars.*;
+import smpl.lang.compound.*;
+import smpl.lang.statements.*;
+import smpl.lang.string.*;
+
+
 /* Preliminaries to set up and use the scanner.  */
 action code {:          :};
 
@@ -61,19 +71,25 @@ terminal PLUS, MINUS, TIMES, DIV, MOD;
 
 /* Punctuation */
 terminal LPAREN, RPAREN, LBRACKET, RBRACKET, SEMI, COMMA, COLON;
+terminal LBCOLON, RBCOLON, QUES;
 
 terminal Integer INTEGER;
 terminal Double REAL;
 terminal String VAR;
 terminal String STRING;
+terminal Integer BINARY;
+terminal Integer HEX;
+terminal String UNICODE;
+terminal String CHAR;
+terminal String BOOL;
+terminal String RATIONAL;
+terminal String LOGIC;
+
+
+// Key Words
+terminal CAR, CDR, PAIR, LIST, SIZE, PRINT;
 
 /* Non terminals */
-non terminal SMPLProgram program;
-non terminal StmtSequence stmtList;
-non terminal SMPLStatement stmt;
-
-// non terminal SMPLFunCall funCall;
-non terminal ASTExp<SMPLExp> primitiveExp;
 
 /* *** Logic extensions (in support of IF) *** */
 // terminal String CMP;
@@ -82,11 +98,6 @@ non terminal ASTExp<SMPLExp> primitiveExp;
 // place your extensions here, if you do this problem
 
 /* *** End of logic extensions *** */
-
-non terminal ASTExp<AIRExp> arithExp;
-non terminal ASTExp<AIRExp> arithTerm;
-non terminal ASTExp<AIRExp> arithConstFactor;
-non terminal ASTExp<AIRExp> arithFactor;
 
 non terminal ArrayList<ASTExp<AIRExp>> aExpList;   /* non-empty arith exp list */
 non terminal ArrayList<ASTExp<AIRExp>> aExpListE;  /* potentially empty arith exp list */
@@ -98,38 +109,143 @@ non terminal ArrayList<String> paramListE;
 non terminal empty;
 
 
-/* Fill in the rest of your non terminal declarations here */
+// Non-Terminals
 
-/* Grammar rules */
+non terminal SMPLProgram program;
+non terminal StmtSequence stmtList;
+non terminal SMPLStatement stmt;
+non terminal SMPLExp smplExp;
+non terminal ASTExp<AIRExp> arithExp, arithTerm, arithFactor;
+non terminal ASTExp<StringExp> stringExp, stringTerm, stringFactor;
+non terminal ASTExp<CharExp> charExp, charTerm, charFactor;
+
+non terminal ASTExp<BoolExp> boolExp, boolTerm, boolFactor;
+non terminal ASTExp<CompoundExp> pairExp;
+
+non terminal ASTVar varExp;
+
+// VAR:var {: RESULT = new StringLit(var, ""); :}
 
 start with program;
 
-program ::= stmtList:seq {:
-    RESULT = new SMPLProgram(seq); :};
+program                         ::=     stmtList:seq {:
+                                            RESULT = new SMPLProgram(seq);
+                                        :};
 
-stmtList ::= stmtList:seq stmt:s {:
-      seq.addStatement(s);
-      RESULT = seq; :} |
-       stmt:s {:
-      RESULT = new StmtSequence(s); :};
 
-stmt ::= VAR:id ASSIGN arithExp:e {: RESULT = new SMPLAssignment(id, e); :};
+stmtList                        ::=     stmtList:seq stmt:s {:
+                                            seq.addStatement(s);
+                                            RESULT = seq;
+                                        :} |
 
-arithExp ::= arithExp:e PLUS arithTerm:t {: RESULT = new ASTBinaryExp<AIRExp>("+", e, t); :} |
-             arithExp:e MINUS arithTerm:t {: RESULT = new ASTBinaryExp<AIRExp>("-", e, t); :} |
-             arithTerm:t {: RESULT = t; :};
+                                        stmt:s {:
+                                            StmtSequence seq = new StmtSequence();
+                                            seq.addStatement(s);
+                                            RESULT = seq;
+                                        :};
 
-arithTerm ::= arithTerm:t TIMES arithFactor:f {: RESULT = new ASTBinaryExp<AIRExp>("*", t, f); :}|
-              arithTerm:t DIV arithFactor:f {: RESULT = new ASTBinaryExp<AIRExp>("/", t, f); :}|
-              arithTerm:t MOD arithFactor:f {: RESULT = new ASTBinaryExp<AIRExp>("%", t, f); :}|
-              arithFactor:f {: RESULT = f; :};
 
-arithConstFactor ::= INTEGER:ilit {: RESULT = new AIRExpInt(ilit); :} |
-                     LPAREN arithExp:e RPAREN {: RESULT = e; :};
+stmt                            ::=     VAR:id ASSIGN smplExp:exp SEMI {:
+                                            RESULT = new SMPLAssignment(id, exp);
+                                        :} |
 
-arithFactor ::= arithConstFactor:cf {: RESULT = cf; :} |
-                VAR:var {: RESULT = new ASTVar(var); :} |
-                MINUS arithFactor:f {: 
-                  RESULT = new ASTUnaryExp<AIRExp>("-", f); :};
+                                        PRINT smplExp:exp SEMI {: RESULT = new PrintStmt(exp); :};
 
-empty ::= ;
+
+varExp                          ::=     VAR:var {: 
+                                            RESULT =  new ASTVar(var);
+                                        :};
+
+
+smplExp                         ::=     pairExp:pair {: RESULT = new SMPLExp(pair); :} |
+                                        arithExp:aExp {: RESULT = new SMPLExp(aExp); :} |
+                                        stringExp:sExp {: RESULT = new SMPLExp(sExp); :} |
+                                        charExp:chExp {: RESULT = new SMPLExp(chExp); :} |
+                                        boolExp:bExp {: RESULT = new SMPLExp(bExp); :} |
+                                        CAR LPAREN pairExp:exp RPAREN {:
+                                            RESULT = new Car(exp); :} |
+                                        CDR LPAREN pairExp:exp RPAREN {: 
+                                            RESULT = new Cdr(exp); :};
+
+
+boolExp                         ::=     boolTerm:bool1 LOGIC:op boolExp:bool2 {: 
+                                            RESULT = new BinaryCompareExp(op, (BoolExp) bool1, (BoolExp) bool2); 
+                                        :} |
+                                        LOGIC:op boolExp:bool {: 
+                                            RESULT = new BinaryCompareExp(op, (BoolExp) bool);
+                                        :} |
+                                        boolTerm:bool {: RESULT = bool; :};
+
+
+boolTerm                        ::=     arithExp:exp1 RATIONAL:op arithExp:exp2 {: 
+                                            RESULT = new BinaryCompareExp(op, exp1, exp2); 
+                                        :} |
+
+                                        PAIR QUES LPAREN smplExp:exp RPAREN {:
+                                            RESULT = null; 
+                                        :} | 
+
+                                        boolFactor:bool {: RESULT = bool; :};
+
+
+boolFactor                      ::=     BOOL:bool {: 
+                                            if (bool.equals("#t")) {
+                                                RESULT = new BoolExp(true); 
+                                            } else {
+                                                RESULT = new BoolExp(false);
+                                            }
+                                        :} |
+
+                                        LPAREN boolExp:bool RPAREN {: RESULT = bool; :};
+
+
+charExp                         ::=     charTerm:t {: RESULT = t; :};
+
+
+charTerm                        ::=     charFactor: f {: RESULT = f; :};
+
+
+charFactor                      ::=     CHAR:ch {: RESULT = new CharLit(ch.charAt(0), "#c"); :} |
+                                        UNICODE:uni {: RESULT = new CharLit(uni, "#u"); :};
+
+
+stringExp                       ::=     stringTerm:t {: RESULT = t; :};
+
+
+stringTerm                      ::=     stringFactor:f {: RESULT = f; :};
+
+
+stringFactor                    ::=     STRING:sLit {: RESULT = new StringLit(sLit); :};
+                                        
+
+
+arithExp                        ::=     arithExp:e PLUS arithTerm:t {: RESULT = new ASTBinaryExp("+", e, t); :} |
+                                        arithExp:e MINUS arithTerm:t {: RESULT = new ASTBinaryExp("-", e, t); :} |
+                                        arithTerm:t {: RESULT = t; :};
+
+
+arithTerm                       ::=     arithTerm:t TIMES arithFactor:f {: RESULT = new ASTBinaryExp("*", t, f); :} |
+                                        arithTerm:t DIV arithFactor:f {: RESULT = new ASTBinaryExp("/", t, f); :} |
+                                        arithTerm:t MOD arithFactor:f {: RESULT = new ASTBinaryExp("%", t, f); :} |
+                                        arithFactor:f {: RESULT = f; :};
+
+arithFactor                     ::=     INTEGER:alit {: RESULT = new AIRLit(alit, ""); :} |
+                                        HEX:hex {: RESULT = new AIRLit(hex, "#x"); :} |
+                                        BINARY:bin {: RESULT = new AIRLit(bin, "#b"); :} |
+                                        LPAREN MINUS arithTerm:aExp RPAREN {: RESULT = new ASTUnaryExp("-", aExp); :} |
+                                        LPAREN arithExp:aexp RPAREN {: RESULT = aexp; :} |
+                                        varExp:var {: 
+                                            RESULT = var; 
+                                        :};     
+
+
+pairExp                         ::=     PAIR LPAREN smplExp:e1 COMMA smplExp:e2 RPAREN {:
+                                            RESULT = new PairExp(e1, e2);
+                                        :} |
+                                        
+                                        varExp:var {: 
+                                            RESULT = var; 
+                                        :};
+
+
+empty                           ::=     ;

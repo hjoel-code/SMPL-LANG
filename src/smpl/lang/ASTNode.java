@@ -1,5 +1,4 @@
 package smpl.lang;
-import smpl.sys.*;
 
 public abstract class ASTNode {
     @Override

@@ -3,17 +3,13 @@ package smpl.sys;
 import java_cup.runtime.*;
 import java.io.*;
 import smpl.lang.*;
-import smpl.values.*;
-import java.util.Scanner;
+import smpl.values.SMPLPrimitive;
 import smpl.lang.evaluators.*;
 
-// import lib3652.util.Interpreter;
-// import lib3652.util.Result;
-// import lib3652.util.TokenException;
 
 
 public class SMPLRepl {
-    static SMPLEvaluator interp;
+    static ASTEvaluator interp;
     static SMPLContext globalEnv;
 
     private static final String MESSAGE = "Type your input at the prompt." +
@@ -21,8 +17,6 @@ public class SMPLRepl {
 	"Quit by entering a '.' as the only line or by sending EOF to input.";
 
     public static void main(String args[]) {
-        // SMPLInterpreter interp = new SMPLInterpreter();
-
         setup();
 
         boolean interactive = true;
@@ -44,7 +38,7 @@ public class SMPLRepl {
     }
 
     public static void setup() {
-        interp = new SMPLEvaluator();
+        interp = new ASTEvaluator();
         globalEnv = interp.mkInitialContext();
     }
 
@@ -66,7 +60,6 @@ public class SMPLRepl {
                 String line = reader.readLine();
                 while (line != null && !line.equals(".")) {
                     System.out.print(NEXT_PROMPT);
-                    input.append("\n");
                     input.append(line);
                     line = reader.readLine();
                 }
@@ -101,7 +94,7 @@ public class SMPLRepl {
                 SMPLPrimitive result;
                 result = commands.visit(interp, env);
                 if (result.getPrimitive() != null) {
-                        System.out.println("\n" + result.toString());
+                        System.out.println("\n" + result.getPrimitive());
                 } else {
                     System.out.println("\nNo result");
                 }

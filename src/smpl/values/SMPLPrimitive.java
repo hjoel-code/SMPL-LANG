@@ -1,17 +1,25 @@
 package smpl.values;
 
-public class SMPLPrimitive<T> {
-  private T primitive;
+public class SMPLPrimitive {
+  private String primitive;
 
-  public static SMPLPrimitive no_result = new SMPLPrimitive<String>("No Result");
+  public static SMPLPrimitive no_result = new SMPLPrimitive("No Result");
 
   public SMPLPrimitive() {}
 
-  public SMPLPrimitive(T primitive) {
+  public SMPLPrimitive(String primitive) {
     this.primitive = primitive;
   }
 
-  public T getPrimitive() {
+  public String getPrimitive() {
     return primitive;
+  }
+
+  public void appendToPrimitive(String str) {
+    primitive += " " + str;
+  }
+
+  public void resetPrimitive() {
+      primitive = "";
   }
 }

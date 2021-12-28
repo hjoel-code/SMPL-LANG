@@ -15,7 +15,7 @@ public class SMPLFunction {
     String name;
     ArrayList<String> numericalParams;
     StmtSequence body;
-    SMPLContext closingEnv;
+    SMPLEnvironment<SMPLFunction> closingEnv;
 
     /**
      * Create a new function instance with a given name, parameter list, body
@@ -25,8 +25,7 @@ public class SMPLFunction {
      * @param b The body of the function
      * @param env The closing environment of the function.
      */
-    public SMPLFunction(String id, ArrayList<String> nParams, StmtSequence b, 
-                       SMPLContext env) {
+    public SMPLFunction(String id, ArrayList<String> nParams, StmtSequence b, SMPLEnvironment<SMPLFunction>  env) {
       this.name = id;
             numericalParams = nParams;
       this.body = b;
@@ -54,7 +53,7 @@ public class SMPLFunction {
     /**
      * @return The closing environment for this function
      */
-    public SMPLContext getClosingEnv() {
+    public SMPLEnvironment<SMPLFunction>  getClosingEnv() {
         return closingEnv;
     }
 }

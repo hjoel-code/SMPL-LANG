@@ -1,38 +1,37 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package smpl.lang;
 
-import smpl.sys.SMPLException;
+import smpl.lang.statements.SMPLStatement;
 import smpl.lang.visitors.ASTVisitor;
+import smpl.lang.visitors.StmtVisitor;
+import smpl.sys.SMPLException;
 
-/**
- * A generic variable.
- * @author Daniel Coore <daniel.coore@uwimona.edu.jm>
- * Created on 28-Oct-2015
- * @param <E> The type for which this variable is intended to represent.
- */
-public class ASTVar<E extends ASTExp<E>> extends ASTExp<E> {
-    private final String id;
+public class ASTVar<E extends ASTExp<E>> extends ASTExp<E> implements SMPLStatement{
 
-    public ASTVar(String id) {
-        this.id = id;
+
+    private String var;
+
+
+    public ASTVar(String var) {
+        super("var");
+        this.var = var;
     }
 
-    public String getId() {
-        return id;
+    public String getVar() {
+        return var;
+    }
+
+    @Override
+    public <S, T> T visit(StmtVisitor<SMPLProgram, S, T> v, S state) throws SMPLException {
+        return v.visitASTVar(this, state);
     }
 
     @Override
     public <S, T> T visit(ASTVisitor<E, S, T> v, S state) throws SMPLException {
-        return v.visitVar(this, state);
+        return visit( (StmtVisitor<SMPLProgram, S, T>) v, state);
     }
+
     
-    @Override
-    public String toString() {
-        return id;
-    }
+    
+
+
 }

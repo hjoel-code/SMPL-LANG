@@ -1,59 +1,140 @@
 package smpl.lang.evaluators;
 
-import smpl.sys.*;
-import smpl.values.*;
-import java.util.*;
-import smpl.lang.visitors.*;
+import smpl.lang.visitors.SMPLVisitor;
+import smpl.sys.SMPLContext;
+import smpl.sys.SMPLException;
 import smpl.lang.*;
+import smpl.lang.arith.AIRExp;
+import smpl.lang.arith.AIRLit;
+import smpl.lang.arith.ASTBinaryExp;
+import smpl.lang.arith.ASTUnaryExp;
+import smpl.lang.bool.BinaryCompareExp;
+import smpl.lang.bool.BoolExp;
+import smpl.lang.chars.CharExp;
+import smpl.lang.chars.CharLit;
+import smpl.lang.compound.Car;
+import smpl.lang.compound.Cdr;
+import smpl.lang.compound.CompoundExp;
+import smpl.lang.string.StringExp;
+import smpl.lang.string.StringLit;
+import smpl.values.*;
+import smpl.values.type.compound.Pair;
+import smpl.values.type.compound.SMPLCompound;
 
-public class SMPLEvaluator implements SMPLVisitor<SMPLContext, SMPLPrimitive> {
-  private final ArithEvaluator arithEval;
-  protected Double result; // result of evaluation
-  private Double defaultValue;
-  private Class<Double> myClass; 
-  SMPLPrimitive lastResult;
+public class SMPLEvaluator<E extends ASTExp<E>> implements SMPLVisitor<SMPLExp<E>, SMPLContext, SMPLData> {
 
-  protected SMPLEvaluator() {
-    this.arithEval = new ArithEvaluator();
-    lastResult = new SMPLPrimitive<Double>(0D);
-  }
+    private ASTEvaluator eval;
 
-  public SMPLPrimitive getResult() {
-    return lastResult;
-  }
+    public SMPLEvaluator(ASTEvaluator eval) {
+        this.eval = eval;
+    }
 
-  public SMPLEvaluator(Double defaultValue) {
-    // this.defaultValue = defaultVal;
-    // myClass = Double.class;
-    // result = defaultValue;
-  }
+    @Override
+    public <A extends ASTExp<A>> SMPLData visitSMPLExp(SMPLExp<A> expr, SMPLContext state) throws SMPLException {
+        String type = expr.getExp().getType();
+        if (type.equals("arith")) {
 
-  @Override
-  public SMPLPrimitive visitSMPLProgram(SMPLProgram sp, SMPLContext arg) 
-    throws SMPLException {
-    StmtSequence stmts = sp.getSeq();
+            AIRExp exp = (AIRExp) expr.getExp();
+            type = exp.getaType();
 
-    return stmts.visit(this, arg);
-  }
+            try {
 
-  /**
-   * @return a freshly created global context suitable for visiting top level
-   * expressions.
-   */
-  public SMPLContext mkInitialContext() {
-    // throw new UnsupportedOperationException("Implement this to return a new global context");    
-      return new SMPLCompositer(new SMPLEnvironment<Double>(), new SMPLEnvironment<SMPLFunction>());
-  }
+                if (type.equals("arithLit") | type.equals("arithVar")) {
+                    AIRLit aExp = (AIRLit) expr.getExp();
+                    return aExp.visit(eval.getArithEval(), state.getAritEnvironment());
+                } else if (type.equals("arithBinary")) {
+                    ASTBinaryExp aExp = (ASTBinaryExp) expr.getExp();
+                    return aExp.visit(eval.getArithEval(), state.getAritEnvironment());
+                } else if (type.equals("arithUnary")) {
+                    ASTUnaryExp aExp = (ASTUnaryExp) expr.getExp();
+                    return aExp.visit(eval.getArithEval(), state.getAritEnvironment());
+                }
 
-  public SMPLPrimitive visitStmtSequence(StmtSequence seq, SMPLContext state) throws SMPLException {
-    return new SMPLPrimitive<Double>(0D);
-  }
+            } catch (Exception err) {
 
-  public SMPLPrimitive vistSMPLAssignment(SMPLAssignment assignment, SMPLContext state) throws SMPLException {
-    return new SMPLPrimitive<Double>(0D);
-  }
+                throw new SMPLException(err.getMessage());
 
-  public SMPLPrimitive visitSMPLStatement(SMPLStatement smplStatement, SMPLContext state) throws SMPLException {
-    return new SMPLPrimitive<Double>(0D);
-  }
+            }
+
+        } else if (type.equals("string")) {
+
+            StringExp exp = (StringExp) expr.getExp();
+            type = exp.getsType();
+
+            try {
+
+                if (type.equals("stringLit") | type.equals("stringVar")) {
+                    StringLit sExp = (StringLit) expr.getExp();
+                    return sExp.visit(eval.getStrEval(), state.getStringEnvironment()); 
+                }
+
+            } catch (Exception err) {
+
+                throw new SMPLException(err.getMessage());
+
+            }
+        } else if (type.equals("pair")) {
+
+            CompoundExp cExp = (CompoundExp) expr.getExp();
+            return cExp.visit(eval.getCompoundEval(), state.getCompoundTypeEnvironment());
+
+        } else if (type.equals("char")) {
+
+            CharExp ch = (CharExp) expr.getExp();
+            type = ch.getcType();
+
+            if (type.equals("charLit")) {
+                CharLit chExp = (CharLit) ch;
+                System.out.println(chExp.getRef());
+                return chExp.visit(eval.getCharEval(), state.getCharacterEnvironment());
+            }
+            
+
+        } else if (type.equals("bool")) {
+
+            BoolExp bool = (BoolExp) expr.getExp();
+            type = bool.getbType();
+            
+            if (type == null) {
+                return bool.visit(eval.getBoolEval(), state.getBoolEnvironment());
+            } else {
+                BinaryCompareExp boolExp = (BinaryCompareExp) bool;
+                return boolExp.visit(eval.getBoolEval(), state.getBoolEnvironment());
+            }
+        } else if (type.equals("var")) {
+            ASTVar<A> var = (ASTVar<A>) expr.getExp();
+            return var.visit(eval.getStmtEval(), state);
+        }
+        throw new SMPLException("Invalid Expression");
+
+    }
+
+    @Override
+    public SMPLData visitSMPLProgram(SMPLProgram sp, SMPLContext arg) throws SMPLException {
+        return null;
+    }
+
+    @Override
+    public SMPLData visitStmtSequence(StmtSequence seq, SMPLContext state) throws SMPLException {
+        return null;
+    }
+
+    @Override
+    public <A extends ASTExp<A>> SMPLData visitCARExp(Car<A> exp, SMPLContext state) throws SMPLException {
+        SMPLExp<A> smpl = (SMPLExp<A>) exp;
+
+        SMPLData<SMPLCompound> pair = (SMPLData<SMPLCompound>) this.visitSMPLExp(smpl, state);
+        Pair pairVal = (Pair) pair.getVal();
+        return pairVal.getArg1();
+    }
+
+    @Override
+    public <A extends ASTExp<A>> SMPLData visitCDRExp(Cdr<A> exp, SMPLContext state) throws SMPLException {
+        SMPLExp<A> smpl = (SMPLExp<A>) exp;
+
+        SMPLData<SMPLCompound> pair = (SMPLData<SMPLCompound>) this.visitSMPLExp(smpl, state);
+        Pair pairVal = (Pair) pair.getVal();
+        return pairVal.getArg2();
+    }
+
 }

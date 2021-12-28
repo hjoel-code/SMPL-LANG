@@ -3,7 +3,7 @@ package smpl.lang.evaluators;
 public enum LogicOps implements Operators<Boolean, Boolean> {
     
 
-    AND("AND") {
+    AND("and") {
         @Override
         public Boolean apply(Boolean arg1, Boolean arg2) {
             return arg1 && arg2;
@@ -11,7 +11,7 @@ public enum LogicOps implements Operators<Boolean, Boolean> {
     },
 
 
-    OR("OR") {
+    OR("or") {
         @Override
         public Boolean apply(Boolean arg1, Boolean arg2) {
             return arg1 || arg2;
@@ -19,7 +19,7 @@ public enum LogicOps implements Operators<Boolean, Boolean> {
     },
 
 
-    NOT("NOT") {
+    NOT("not") {
         @Override
         public Boolean apply(Boolean arg1, Boolean arg2) {
             return !arg1;

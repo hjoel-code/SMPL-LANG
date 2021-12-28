@@ -1,28 +1,39 @@
 package smpl.lang;
 
-import smpl.lang.visitors.ASTVisitor;
-import smpl.lang.visitors.SMPLVisitor;
+import smpl.lang.visitors.*;
 import smpl.sys.SMPLException;
 
-/**
- * Abstract representation for SMPL Expressions
- */
+public class SMPLExp<E extends ASTExp<E>> extends ASTExp<SMPLExp<E>> {
+    
+    private ASTExp<E> exp;
 
-public abstract class SMPLExp extends ASTExp<SMPLExp> {    
-    /**
-     * Visit this expression with the given visitor and visitor context.
-     * @param <S> The type of the visitor context
-     * @param <T> The return type of the visitor
-     * @param v The visitor
-     * @param context The context used by the visitor
-     * @return The result of the visit
-     * @throws smpl.sys.SMPLException if something goes wrong while visiting.
-     */
-    public abstract <S, T> T visit(SMPLVisitor<S, T> v, S state) throws SMPLException;
+    public SMPLExp(ASTExp<E> exp) {
+        super(exp.getType());
+        this.exp = exp;
+    }
+
+    public SMPLExp(SMPLExp exp) {
+        super(exp.getExp().getType());
+        this.exp = exp.getExp();
+    }
+
+    public ASTExp<E> getExp() {
+        return exp;
+    }
+
+    public Class<?> getExpType() {
+        return exp.getClass();
+    }
+
+    public <S, T> T visit(SMPLVisitor<SMPLExp<E>, S, T> v, S state) throws SMPLException {
+        return v.visitSMPLExp(this, state);
+    }
 
     @Override
-    public <S, T> T visit(ASTVisitor<SMPLExp, S, T> v, S state) throws SMPLException {
-        return visit((SMPLVisitor<S, T>) v, state);
+    public <S, T> T visit(ASTVisitor<SMPLExp<E>, S, T> v, S state) throws SMPLException {
+        return visit((SMPLVisitor<E, S, T>) v, state);
     }
+
+    
 
 }

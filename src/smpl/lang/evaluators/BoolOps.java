@@ -18,7 +18,7 @@ public enum BoolOps implements Operators<Double, Boolean> {
     },
 
 
-    EQ("==") {
+    EQ("=") {
         @Override
         public Boolean apply(Double arg1, Double arg2) {
             return arg1 == arg2;
