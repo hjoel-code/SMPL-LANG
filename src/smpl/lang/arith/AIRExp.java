@@ -2,19 +2,25 @@ package smpl.lang.arith;
 
 import smpl.sys.*;
 import smpl.lang.ASTExp;
+import smpl.lang.SMPLObject;
 import smpl.lang.visitors.*;
 
-public abstract class AIRExp extends ASTExp<AIRExp> {
+public abstract class AIRExp extends ASTExp<AIRExp> implements SMPLObject {
 
-  private String aType;
+  private final String type;
 
-  public AIRExp(String type) {
-    super("arith");
-    this.aType = type;
+  public AIRExp() {
+    this.type = "arith";
   }
 
-  public String getaType() {
-    return aType;
+  @Override
+    public void setType(String type) {
+    }
+
+
+  @Override
+  public String getType() {
+      return type;
   }
 
   public abstract <S, T> T visit(AIRVisitor<AIRExp, S, T> v, S state) throws SMPLException;

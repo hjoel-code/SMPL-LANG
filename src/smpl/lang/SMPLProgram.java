@@ -8,12 +8,8 @@ import smpl.values.SMPLPrimitive;
 public class SMPLProgram extends ASTExp<SMPLProgram> {
     protected StmtSequence stmts;
 
-    public SMPLProgram() {
-        super("program");
-    }
 
     public SMPLProgram(StmtSequence stmts) {
-        this();
         this.stmts = stmts;
     }
 

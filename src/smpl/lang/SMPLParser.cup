@@ -99,11 +99,6 @@ terminal CAR, CDR, PAIR, LIST, SIZE, PRINT;
 
 /* *** End of logic extensions *** */
 
-non terminal ArrayList<ASTExp<AIRExp>> aExpList;   /* non-empty arith exp list */
-non terminal ArrayList<ASTExp<AIRExp>> aExpListE;  /* potentially empty arith exp list */
-non terminal ArrayList<ASTExp<SMPLExp>> pExpList;   /* non-empty painter exp list */
-non terminal ArrayList<ASTExp<SMPLExp>> pExpListE;  /* potentially empty painter exp list */
-
 non terminal ArrayList<String> paramList;
 non terminal ArrayList<String> paramListE;
 non terminal empty;
@@ -114,17 +109,27 @@ non terminal empty;
 non terminal SMPLProgram program;
 non terminal StmtSequence stmtList;
 non terminal SMPLStatement stmt;
-non terminal SMPLExp smplExp;
-non terminal ASTExp<AIRExp> arithExp, arithTerm, arithFactor;
-non terminal ASTExp<StringExp> stringExp, stringTerm, stringFactor;
-non terminal ASTExp<CharExp> charExp, charTerm, charFactor;
+non terminal SMPLObject smplExp;
+non terminal AIRExp arithExp, arithTerm, arithFactor;
+non terminal StringExp stringExp, stringTerm, stringFactor;
+non terminal CharExp charExp, charTerm, charFactor;
 
-non terminal ASTExp<BoolExp> boolExp, boolTerm, boolFactor;
-non terminal ASTExp<CompoundExp> pairExp;
+non terminal BoolExp boolExp, boolTerm, boolFactor;
+non terminal PairExp pairExp;
 
-non terminal ASTVar varExp;
+non terminal ArrayList<ASTExp<StringExp>> strExpList, strExpListE;  
+non terminal ArrayList<ASTExp<CharExp>> cExpList, cExpListE;
+non terminal ArrayList<ASTExp<AIRExp>> aExpList, aExpListE;
+non terminal ArrayList<ASTExp<BoolExp>> bExpList, bExpListE;
+non terminal ArrayList<SMPLObject> smplExpList, smplExpListE;
 
-// VAR:var {: RESULT = new StringLit(var, ""); :}
+
+non terminal BoolExp boolVar;
+non terminal AIRExp arithVar;
+non terminal StringExp stringVar;
+non terminal CharExp charVar;
+non terminal CompoundExp pairVar;
+
 
 start with program;
 
@@ -152,51 +157,103 @@ stmt                            ::=     VAR:id ASSIGN smplExp:exp SEMI {:
                                         PRINT smplExp:exp SEMI {: RESULT = new PrintStmt(exp); :};
 
 
-varExp                          ::=     VAR:var {: 
-                                            RESULT =  new ASTVar(var);
+smplExp                         ::=     VAR:var {: RESULT = new ASTVar(var); :} |
+                                        pairExp:pair {: RESULT = (PairExp) pair; :} |
+                                        arithExp:aExp {: RESULT = (AIRExp) aExp; :} |
+                                        stringExp:sExp {: RESULT = (StringExp) sExp; :} |
+                                        charExp:chExp {: RESULT = (CharExp) chExp; :} |
+                                        boolExp:bExp {: RESULT = (BoolExp) bExp; :} |
+                                        CAR LPAREN pairExp:exp RPAREN {:
+                                            RESULT = new CAR(exp); :} |
+                                        CAR LPAREN pairVar:var RPAREN {: 
+                                            RESULT = new CAR(var); :} |
+                                        CDR LPAREN pairExp:exp RPAREN {:
+                                            RESULT = new CDR(exp); :} |
+                                        CDR LPAREN pairVar:var RPAREN {: 
+                                            RESULT = new CDR(var); :};
+
+
+// Boolean Expressions
+
+
+bExpListE                       ::=     bExpList:lst {: 
+                                            RESULT = lst;
+                                        :} |
+                                        empty {: RESULT = new ArrayList<>(); :};
+
+
+bExpList                        ::=     bExpList:lst COMMA boolExp:e {: 
+                                            lst.add(e);
+                                            RESULT = lst;
+                                        :} |
+
+                                        boolExp:e {: 
+                                            RESULT = new ArrayList<>();
+                                            RESULT.add(e);
                                         :};
 
 
-smplExp                         ::=     pairExp:pair {: RESULT = new SMPLExp(pair); :} |
-                                        arithExp:aExp {: RESULT = new SMPLExp(aExp); :} |
-                                        stringExp:sExp {: RESULT = new SMPLExp(sExp); :} |
-                                        charExp:chExp {: RESULT = new SMPLExp(chExp); :} |
-                                        boolExp:bExp {: RESULT = new SMPLExp(bExp); :} |
-                                        CAR LPAREN pairExp:exp RPAREN {:
-                                            RESULT = new Car(exp); :} |
-                                        CDR LPAREN pairExp:exp RPAREN {: 
-                                            RESULT = new Cdr(exp); :};
+boolVar                         ::=     VAR:var {: RESULT = new BoolLit(new ASTVar<BoolExp>(var)); :};
 
 
 boolExp                         ::=     boolTerm:bool1 LOGIC:op boolExp:bool2 {: 
-                                            RESULT = new BinaryCompareExp(op, (BoolExp) bool1, (BoolExp) bool2); 
+                                            RESULT = new BoolCalc(new ASTBinaryExp<BoolExp>(op, bool1, bool2)); 
                                         :} |
+
                                         LOGIC:op boolExp:bool {: 
-                                            RESULT = new BinaryCompareExp(op, (BoolExp) bool);
+                                            RESULT = new BoolCalc(new ASTUnaryExp<BoolExp>(op, bool));
                                         :} |
-                                        boolTerm:bool {: RESULT = bool; :};
+
+                                        boolTerm:bool {: RESULT = bool; :} |
+
+                                        boolVar:bool1 LOGIC:op boolExp:bool2 {: 
+                                            RESULT = new BoolCalc(new ASTBinaryExp<BoolExp>(op, bool1, bool2)); 
+                                        :} |
+
+                                        LOGIC:op boolVar:bool {: 
+                                            RESULT = new BoolCalc(new ASTUnaryExp<BoolExp>(op, bool));
+                                        :};
 
 
 boolTerm                        ::=     arithExp:exp1 RATIONAL:op arithExp:exp2 {: 
-                                            RESULT = new BinaryCompareExp(op, exp1, exp2); 
+                                            RESULT = new BoolCalc(new ASTBinaryExp<BoolExp>(op, exp1, exp2)); 
                                         :} |
-
-                                        PAIR QUES LPAREN smplExp:exp RPAREN {:
-                                            RESULT = null; 
-                                        :} | 
 
                                         boolFactor:bool {: RESULT = bool; :};
 
 
 boolFactor                      ::=     BOOL:bool {: 
                                             if (bool.equals("#t")) {
-                                                RESULT = new BoolExp(true); 
+                                                RESULT = new BoolLit(true); 
                                             } else {
-                                                RESULT = new BoolExp(false);
+                                                RESULT = new BoolLit(false);
                                             }
                                         :} |
 
                                         LPAREN boolExp:bool RPAREN {: RESULT = bool; :};
+
+
+
+// Character Expressions
+
+cExpListE                       ::=     cExpList:lst {: 
+                                            RESULT = lst;
+                                        :} |
+                                        empty {: RESULT = new ArrayList<>(); :};
+
+
+cExpList                        ::=     cExpList:lst COMMA charExp:e {: 
+                                            lst.add(e);
+                                            RESULT = lst;
+                                        :} |
+
+                                        charExp:e {: 
+                                            RESULT = new ArrayList<>();
+                                            RESULT.add(e);
+                                        :};
+
+
+charVar                         ::=     VAR:var {: RESULT = new CharLit(new ASTVar<CharExp>(var)); :};
 
 
 charExp                         ::=     charTerm:t {: RESULT = t; :};
@@ -209,6 +266,29 @@ charFactor                      ::=     CHAR:ch {: RESULT = new CharLit(ch.charA
                                         UNICODE:uni {: RESULT = new CharLit(uni, "#u"); :};
 
 
+
+// String Expressions
+
+strExpListE                     ::=     strExpListE:lst {: 
+                                            RESULT = lst;
+                                        :} |
+                                        empty {: RESULT = new ArrayList<>(); :};
+
+
+strExpList                      ::=     strExpList:lst COMMA stringExp:e {: 
+                                            lst.add(e);
+                                            RESULT = lst;
+                                        :} |
+
+                                        stringExp:e {: 
+                                            RESULT = new ArrayList<>();
+                                            RESULT.add(e);
+                                        :};
+
+
+stringVar                       ::=     VAR:var {: RESULT = new StringLit(new ASTVar<StringExp>(var)); :};
+
+
 stringExp                       ::=     stringTerm:t {: RESULT = t; :};
 
 
@@ -216,35 +296,92 @@ stringTerm                      ::=     stringFactor:f {: RESULT = f; :};
 
 
 stringFactor                    ::=     STRING:sLit {: RESULT = new StringLit(sLit); :};
+
+
+// Arithmetic Expressions
+
+
+aExpListE                       ::=     aExpList:lst {: 
+                                            RESULT = lst;
+                                        :} |
+                                        empty {: RESULT = new ArrayList<>(); :};
+
+
+aExpList                        ::=     aExpList:lst COMMA arithExp:e {: 
+                                            lst.add(e);
+                                            RESULT = lst;
+                                        :} |
+
+                                        arithExp:e {: 
+                                            RESULT = new ArrayList<>();
+                                            RESULT.add(e);
+                                        :};
+
+
+arithVar                        ::=     VAR:var {: RESULT = new AIRLit(new ASTVar<AIRExp>(var)); :};
+
+
+arithExp                        ::=     arithExp:e PLUS arithTerm:t {: 
+                                            ASTBinaryExp<AIRExp> calc = new ASTBinaryExp<AIRExp>("+", e, t);
+                                            RESULT = new ArithCalc(calc); :} |
+                                        arithExp:e MINUS arithTerm:t {: 
+                                            ASTBinaryExp<AIRExp> calc = new ASTBinaryExp<AIRExp>("-", e, t);
+                                            RESULT = new ArithCalc(calc); :} |
                                         
-
-
-arithExp                        ::=     arithExp:e PLUS arithTerm:t {: RESULT = new ASTBinaryExp("+", e, t); :} |
-                                        arithExp:e MINUS arithTerm:t {: RESULT = new ASTBinaryExp("-", e, t); :} |
+                                        arithVar:e PLUS arithTerm:t {: 
+                                            ASTBinaryExp<AIRExp> calc = new ASTBinaryExp<AIRExp>("+", e, t);
+                                            RESULT = new ArithCalc(calc); :} |
+                                        arithVar:e MINUS arithTerm:t {: 
+                                            ASTBinaryExp<AIRExp> calc = new ASTBinaryExp<AIRExp>("-", e, t);
+                                            RESULT = new ArithCalc(calc); :} |
                                         arithTerm:t {: RESULT = t; :};
 
 
-arithTerm                       ::=     arithTerm:t TIMES arithFactor:f {: RESULT = new ASTBinaryExp("*", t, f); :} |
-                                        arithTerm:t DIV arithFactor:f {: RESULT = new ASTBinaryExp("/", t, f); :} |
-                                        arithTerm:t MOD arithFactor:f {: RESULT = new ASTBinaryExp("%", t, f); :} |
+arithTerm                       ::=     arithTerm:t TIMES arithFactor:f {: 
+                                            ASTBinaryExp<AIRExp> calc = new ASTBinaryExp<AIRExp>("*", t, f);
+                                            RESULT = new ArithCalc(calc); :} |
+                                        arithTerm:t DIV arithFactor:f {: 
+                                            ASTBinaryExp<AIRExp> calc = new ASTBinaryExp<AIRExp>("/", t, f);
+                                            RESULT = new ArithCalc(calc); :} |
+                                        arithTerm:t MOD arithFactor:f {: 
+                                            ASTBinaryExp<AIRExp> calc = new ASTBinaryExp<AIRExp>("%", t, f);
+                                            RESULT = new ArithCalc(calc); :} |
+
+                                        arithVar:t TIMES arithFactor:f {: 
+                                            ASTBinaryExp<AIRExp> calc = new ASTBinaryExp<AIRExp>("*", t, f);
+                                            RESULT = new ArithCalc(calc); :} |
+                                        arithVar:t DIV arithFactor:f {: 
+                                            ASTBinaryExp<AIRExp> calc = new ASTBinaryExp<AIRExp>("/", t, f);
+                                            RESULT = new ArithCalc(calc); :} |
+                                        arithVar:t MOD arithFactor:f {: 
+                                            ASTBinaryExp<AIRExp> calc = new ASTBinaryExp<AIRExp>("%", t, f);
+                                            RESULT = new ArithCalc(calc); :} |
+
+                                        arithTerm:t TIMES arithVar:f {: 
+                                            ASTBinaryExp<AIRExp> calc = new ASTBinaryExp<AIRExp>("*", t, f);
+                                            RESULT = new ArithCalc(calc); :} |
+                                        arithTerm:t DIV arithVar:f {: 
+                                            ASTBinaryExp<AIRExp> calc = new ASTBinaryExp<AIRExp>("/", t, f);
+                                            RESULT = new ArithCalc(calc); :} |
+                                        arithTerm:t MOD arithVar:f {: 
+                                            ASTBinaryExp<AIRExp> calc = new ASTBinaryExp<AIRExp>("%", t, f);
+                                            RESULT = new ArithCalc(calc); :} |
                                         arithFactor:f {: RESULT = f; :};
 
 arithFactor                     ::=     INTEGER:alit {: RESULT = new AIRLit(alit, ""); :} |
                                         HEX:hex {: RESULT = new AIRLit(hex, "#x"); :} |
                                         BINARY:bin {: RESULT = new AIRLit(bin, "#b"); :} |
-                                        LPAREN MINUS arithTerm:aExp RPAREN {: RESULT = new ASTUnaryExp("-", aExp); :} |
-                                        LPAREN arithExp:aexp RPAREN {: RESULT = aexp; :} |
-                                        varExp:var {: 
-                                            RESULT = var; 
-                                        :};     
+                                        LPAREN MINUS arithTerm:aExp RPAREN {: 
+                                            ASTUnaryExp<AIRExp> calc = new ASTUnaryExp<AIRExp>("-", aExp);
+                                            RESULT = new ArithCalc(calc); :} |
+                                        LPAREN arithExp:aexp RPAREN {: RESULT = aexp; :};
+
+
+pairVar                         ::=     VAR:var {: RESULT = new PairExp(new ASTVar<CompoundExp>(var)); :};
 
 
 pairExp                         ::=     PAIR LPAREN smplExp:e1 COMMA smplExp:e2 RPAREN {:
                                             RESULT = new PairExp(e1, e2);
-                                        :} |
-                                        
-                                        varExp:var {: 
-                                            RESULT = var; 
                                         :};
 
 

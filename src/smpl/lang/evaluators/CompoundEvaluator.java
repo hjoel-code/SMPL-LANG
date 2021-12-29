@@ -1,15 +1,12 @@
 package smpl.lang.evaluators;
 
-import smpl.lang.ASTExp;
+import smpl.lang.ASTBinaryExp;
+import smpl.lang.ASTUnaryExp;
 import smpl.lang.ASTVar;
-import smpl.lang.SMPLExp;
 import smpl.lang.SMPLProgram;
 import smpl.lang.StmtSequence;
-import smpl.lang.compound.Car;
 import smpl.lang.compound.CompoundExp;
 import smpl.lang.compound.PairExp;
-import smpl.lang.statements.PrintStmt;
-import smpl.lang.statements.SMPLAssignment;
 import smpl.lang.visitors.CompoundVisitor;
 import smpl.sys.SMPLEnvironment;
 import smpl.sys.SMPLException;
@@ -25,50 +22,53 @@ public class CompoundEvaluator
         this.eval = eval;
     }
 
-    public ASTEvaluator getEval() {
-        return eval;
-    }
-
-    @Override
-    public SMPLData<SMPLCompound> visitPairExp(PairExp pair,
-            SMPLEnvironment<SMPLData<SMPLCompound>> state) throws SMPLException {
-        SMPLData exp1 = (SMPLData) pair.getExp1().visit(eval.getSmplStmt(), state.getContext());
-        SMPLData exp2 = (SMPLData) pair.getExp2().visit(eval.getSmplStmt(), state.getContext());
-
-        Pair compoundPair = new Pair(exp1, exp2);
-        return new SMPLData<SMPLCompound>(compoundPair);
-    }
-
     @Override
     public SMPLData<SMPLCompound> visitSMPLProgram(SMPLProgram sp, SMPLEnvironment<SMPLData<SMPLCompound>> arg)
             throws SMPLException {
+        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public SMPLData<SMPLCompound> visitStmtSequence(StmtSequence seq, SMPLEnvironment<SMPLData<SMPLCompound>> state)
             throws SMPLException {
-        return null;
-    }
-
-    @Override
-    public <A extends ASTExp<A>> SMPLData<SMPLCompound> visitSMPLAssignment(SMPLAssignment<A> assignment,
-            SMPLEnvironment<SMPLData<SMPLCompound>> state) throws SMPLException {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public <A extends ASTExp<A>> SMPLData<SMPLCompound> visitPrintStmt(PrintStmt<A> printStmt,
-            SMPLEnvironment<SMPLData<SMPLCompound>> state) throws SMPLException {
+    public SMPLData<SMPLCompound> visitASTVar(ASTVar<CompoundExp> var, SMPLEnvironment<SMPLData<SMPLCompound>> state)
+            throws SMPLException {
+        return state.get(var.getVar());
+    }
+
+    @Override
+    public SMPLData<SMPLCompound> visitASTBinaryExp(ASTBinaryExp biExp, SMPLEnvironment<SMPLData<SMPLCompound>> state)
+            throws SMPLException {
+        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public <A extends ASTExp<A>> SMPLData<SMPLCompound> visitASTVar(ASTVar<A> var,
-            SMPLEnvironment<SMPLData<SMPLCompound>> state) throws SMPLException {
+    public SMPLData<SMPLCompound> visitASTUnaryExp(ASTUnaryExp urExp, SMPLEnvironment<SMPLData<SMPLCompound>> state)
+            throws SMPLException {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public SMPLData<SMPLCompound> visitPairExp(PairExp pair, SMPLEnvironment<SMPLData<SMPLCompound>> state)
+            throws SMPLException {
+
+        if (pair.getContext().equals("var")) {
+            return pair.getVarExp().visit(this, state);
+        } else {
+            SMPLData exp1 = (SMPLData) pair.getObj1().eval(state.getContext(), eval.getObjectEvaluator());
+            SMPLData exp2 = (SMPLData) pair.getObj2().eval(state.getContext(), eval.getObjectEvaluator());
+
+            Pair compoundPair = new Pair(exp1, exp2);
+            return new SMPLData<SMPLCompound>(compoundPair, "pair");
+        }
     }
 
 }

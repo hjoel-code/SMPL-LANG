@@ -5,21 +5,6 @@ import smpl.lang.visitors.ASTVisitor;
 import smpl.sys.SMPLException;
 
 public abstract class ASTExp<E extends ASTExp<E>> extends ASTNode {
-
-    private String type;
-
-    public ASTExp(String type) {
-        this.type = type;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    protected void setType(String type) {
-        this.type = type;
-    }
-    
     /**
      * Call the appropriate visit... method in the visitor with this
      * object and the given argument.  In general, each visitor might

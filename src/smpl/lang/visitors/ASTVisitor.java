@@ -15,4 +15,8 @@ public interface ASTVisitor<E extends ASTExp<E>, S, T>  {
     public T visitSMPLProgram(SMPLProgram sp, S arg) throws SMPLException;
     public T visitStmtSequence(StmtSequence seq, S state) throws SMPLException;
 
+    public T visitASTVar(ASTVar<E> var, S state) throws SMPLException;
+    public T visitASTBinaryExp(ASTBinaryExp biExp, S state) throws SMPLException;
+    public T visitASTUnaryExp(ASTUnaryExp urExp, S state) throws SMPLException;
+
 }

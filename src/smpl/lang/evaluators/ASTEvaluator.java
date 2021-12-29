@@ -17,7 +17,7 @@ public class ASTEvaluator implements ASTVisitor<SMPLProgram, SMPLContext, SMPLPr
     private StringEvaluator strEval;
     private CompoundEvaluator compoundEval;
     private StatementEvaluator stmtEval;
-    private SMPLEvaluator smplStmt;
+    private ObjectEvaluator objEval;
     private CharacterEvaluator charEval;
 
     private SMPLPrimitive lastResult;
@@ -28,7 +28,7 @@ public class ASTEvaluator implements ASTVisitor<SMPLProgram, SMPLContext, SMPLPr
         strEval = new StringEvaluator(this);
         compoundEval = new CompoundEvaluator(this);
         stmtEval = new StatementEvaluator(this);
-        smplStmt = new SMPLEvaluator<>(this);
+        objEval = new ObjectEvaluator(this);
         charEval = new CharacterEvaluator(this);
 
         lastResult = new SMPLPrimitive();
@@ -54,8 +54,8 @@ public class ASTEvaluator implements ASTVisitor<SMPLProgram, SMPLContext, SMPLPr
         return stmtEval;
     }
 
-    public SMPLEvaluator getSmplStmt() {
-        return smplStmt;
+    public ObjectEvaluator getObjectEvaluator() {
+        return objEval;
     }
 
     public CharacterEvaluator getCharEval() {
@@ -93,5 +93,23 @@ public class ASTEvaluator implements ASTVisitor<SMPLProgram, SMPLContext, SMPLPr
 
     public SMPLPrimitive getResult() {
         return lastResult;
+    }
+
+    @Override
+    public SMPLPrimitive visitASTVar(ASTVar<SMPLProgram> var, SMPLContext state) throws SMPLException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public SMPLPrimitive visitASTBinaryExp(ASTBinaryExp biExp, SMPLContext state) throws SMPLException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public SMPLPrimitive visitASTUnaryExp(ASTUnaryExp urExp, SMPLContext state) throws SMPLException {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

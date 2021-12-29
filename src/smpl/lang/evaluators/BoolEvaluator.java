@@ -2,12 +2,16 @@ package smpl.lang.evaluators;
 
 import java.util.HashMap;
 
-import smpl.lang.bool.BinaryCompareExp;
+import smpl.lang.bool.BoolCalc;
 import smpl.lang.bool.BoolExp;
+import smpl.lang.bool.BoolLit;
 import smpl.lang.visitors.BoolVisitor;
 import smpl.sys.SMPLEnvironment;
 import smpl.sys.SMPLException;
 import smpl.values.SMPLData;
+import smpl.lang.ASTBinaryExp;
+import smpl.lang.ASTUnaryExp;
+import smpl.lang.ASTVar;
 import smpl.lang.SMPLProgram;
 import smpl.lang.StmtSequence;
 import smpl.lang.arith.AIRExp;
@@ -34,74 +38,90 @@ public class BoolEvaluator implements BoolVisitor<BoolExp, SMPLEnvironment<SMPLD
         }
     }
 
-    public SMPLData<SMPLBool> visitCompareExp(BinaryCompareExp exp, SMPLEnvironment<SMPLData<SMPLBool>> state) throws SMPLException {
-        String type = exp.getbType();
+    @Override
+    public SMPLData<SMPLBool> visitSMPLProgram(SMPLProgram sp, SMPLEnvironment<SMPLData<SMPLBool>> arg)
+            throws SMPLException {
+        return null;
+    }
 
-        if (type.equals("logic")) {
-            String opName = exp.getOp();
+    @Override
+    public SMPLData<SMPLBool> visitStmtSequence(StmtSequence seq, SMPLEnvironment<SMPLData<SMPLBool>> state)
+            throws SMPLException {
+        return null;
+    }
+
+    @Override
+    public SMPLData<SMPLBool> visitASTVar(ASTVar<BoolExp> var, SMPLEnvironment<SMPLData<SMPLBool>> state)
+            throws SMPLException {
+        return state.get(var.getVar());
+    }
+
+    @Override
+    public SMPLData<SMPLBool> visitASTBinaryExp(ASTBinaryExp biExp, SMPLEnvironment<SMPLData<SMPLBool>> state)
+            throws SMPLException {
+
+        String type = biExp.getExp1().getType();
+
+        if (type.equals("arith")) {
+
+            String opName = biExp.getOperator();
+            BoolOps op = boolOps.get(opName);
+
+            AIRExp leftExp = (AIRExp) biExp.getExp1();
+            AIRExp rightExp = (AIRExp) biExp.getExp2();
+
+            double leftArg = leftExp.visit(eval.getArithEval(), state.getContext().getAritEnvironment()).getVal()
+                    .getVal();
+            double rightArg = rightExp.visit(eval.getArithEval(), state.getContext().getAritEnvironment()).getVal()
+                    .getVal();
+
+            return new SMPLData<SMPLBool>(new SMPLBool(op.apply(leftArg, rightArg)), "bool");
+
+        } else {
+
+            String opName = biExp.getOperator();
             LogicOps op = logicOps.get(opName);
-            
-            BoolExp leftExp = exp.getLeftBool();
-            BoolExp rightExp = exp.getRightBool();
 
-            Boolean leftArg = leftExp.visit(this, state).getVal().getVal();
+            BoolExp leftExp = (BoolExp) biExp.getExp1();
+            BoolExp rightExp = (BoolExp) biExp.getExp2();
+
+            boolean leftArg = leftExp.visit(this, state).getVal().getVal();
             boolean rightArg = rightExp.visit(this, state).getVal().getVal();
 
-            return new SMPLData<SMPLBool>(new SMPLBool(op.apply(leftArg, rightArg)));
-
-        } else if (type.equals("binary")) {
-            String opName = exp.getOp();
-            BoolOps op = boolOps.get(opName);
-            
-            AIRExp leftExp = exp.getLeftArith();
-            AIRExp rightExp = exp.getRightArith();
-
-            double leftArg = leftExp.visit(eval.getArithEval(), state.getContext().getAritEnvironment()).getVal().getVal();
-            double rightArg = rightExp.visit(eval.getArithEval(), state.getContext().getAritEnvironment()).getVal().getVal();
-
-            return new SMPLData<SMPLBool>(new SMPLBool(op.apply(leftArg, rightArg)));
-        } else {
-            String opName = exp.getOp();
-            LogicOps op = logicOps.get(opName);
-            
-            BoolExp leftExp = exp.getLeftBool();
-
-            Boolean leftArg = leftExp.visit(this, state).getVal().getVal();
-
-            return new SMPLData<SMPLBool>(new SMPLBool(op.apply(leftArg, null)));
+            return new SMPLData<SMPLBool>(new SMPLBool(op.apply(leftArg, rightArg)), "bool");
         }
     }
 
-    // public SMPLData<SMPLBool> visitLogicExp(ASTBinaryExp exp, SMPLEnvironment<SMPLData<SMPLBool>> state) throws SMPLException {
-    //     String opName = exp.getOperator();
-    //     LogicOps op = logicOps.get(opName);
-
-    //     BoolExp leftExp = (BoolExp) exp.getExp1();
-    //     BoolExp rightExp = (BoolExp) exp.getExp2();
-
-    //     boolean leftArg = leftExp.visit(this, state).getVal().getVal();
-    //     boolean rightArg = rightExp.visit(this, state).getVal().getVal();
-
-    //     return new SMPLData<SMPLBool>(new SMPLBool(op.apply(leftArg, rightArg)));
-    // }
-
     @Override
-    public SMPLData<SMPLBool> visitSMPLProgram(SMPLProgram sp, SMPLEnvironment<SMPLData<SMPLBool>> arg) throws SMPLException {
-        return null;
-    }
-
-    @Override
-    public SMPLData<SMPLBool> visitStmtSequence(StmtSequence seq, SMPLEnvironment<SMPLData<SMPLBool>> state) throws SMPLException {
-        return null;
-    }
-
-    @Override
-    public SMPLData<SMPLBool> visitBoolExp(BoolExp exp, SMPLEnvironment<SMPLData<SMPLBool>> state)
+    public SMPLData<SMPLBool> visitASTUnaryExp(ASTUnaryExp urExp, SMPLEnvironment<SMPLData<SMPLBool>> state)
             throws SMPLException {
-        return new SMPLData<SMPLBool>(new SMPLBool(exp.getValue()));
+
+        String opName = urExp.getOperator();
+        BoolOps op = boolOps.get(opName);
+
+        AIRExp leftExp = (AIRExp) urExp.getExp();
+
+        double leftArg = leftExp.visit(eval.getArithEval(), state.getContext().getAritEnvironment()).getVal()
+                .getVal();
+
+        return new SMPLData<SMPLBool>(new SMPLBool(op.apply(leftArg, null)), "bool");
     }
 
+    @Override
+    public SMPLData<SMPLBool> visitBoolLit(BoolLit exp, SMPLEnvironment<SMPLData<SMPLBool>> state)
+            throws SMPLException {
+        return exp.getContext().equals("var") ? exp.getVarExp().visit(this, state)
+                : new SMPLData<SMPLBool>(new SMPLBool(exp.getBool()), "bool");
+    }
 
-    
+    @Override
+    public SMPLData<SMPLBool> visitBoolCalc(BoolCalc exp, SMPLEnvironment<SMPLData<SMPLBool>> state)
+            throws SMPLException {
+        if (exp.getCalcType().equals("binary")) {
+            return exp.getBinary().visit(this, state);
+        } else {
+            return exp.getUnary().visit(this, state);
+        }
+    }
 
 }

@@ -21,7 +21,6 @@ public class StmtSequence extends ASTExp<SMPLProgram> {
      *
      */
     public StmtSequence() {
-      super("stmtlst");
       sequence = new ArrayList<>();
     }
 

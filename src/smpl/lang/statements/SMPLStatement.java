@@ -1,12 +1,18 @@
 package smpl.lang.statements;
 
 import smpl.sys.*;
-import smpl.lang.SMPLProgram;
-import smpl.lang.visitors.StmtVisitor;
+import smpl.lang.ASTExp;
+import smpl.lang.visitors.ASTVisitor;
+import smpl.lang.visitors.StatementVisitor;
 
-public interface SMPLStatement {
+public abstract class SMPLStatement extends ASTExp<SMPLStatement> {
+
+    public abstract <S, T> T visit(StatementVisitor<SMPLStatement, S, T> v, S state) throws SMPLException;
+
+
+    @Override
+    public <S, T> T visit(ASTVisitor<SMPLStatement, S, T> v, S state) throws SMPLException {
+        return visit( (StatementVisitor<SMPLStatement, S, T>) v, state);
+    }
     
-
-    public <S, T> T visit(StmtVisitor<SMPLProgram, S, T> v, S state) throws SMPLException;
-
 }

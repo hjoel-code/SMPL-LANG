@@ -1,13 +1,16 @@
 package smpl.lang.evaluators;
 
-import smpl.lang.ASTExp;
+
+
+
+
+import smpl.lang.ASTBinaryExp;
+import smpl.lang.ASTUnaryExp;
 import smpl.lang.ASTVar;
 import smpl.lang.SMPLProgram;
 import smpl.lang.string.StringExp;
 import smpl.lang.string.StringLit;
 import smpl.lang.StmtSequence;
-import smpl.lang.statements.PrintStmt;
-import smpl.lang.statements.SMPLAssignment;
 import smpl.lang.visitors.StringVisitor;
 import smpl.sys.SMPLException;
 
@@ -16,61 +19,52 @@ import smpl.values.*;
 import smpl.sys.SMPLEnvironment;
 
 public class StringEvaluator implements StringVisitor<StringExp, SMPLEnvironment<SMPLData<String>>, SMPLData<String>> {
-    
 
     private ASTEvaluator eval;
-
 
     public StringEvaluator(ASTEvaluator eval) {
         this.eval = eval;
     }
 
-
-
-    @Override
-    public SMPLData<String> visitStringLit(StringLit str, SMPLEnvironment<SMPLData<String>> state)
-            throws SMPLException {
-        return new SMPLData<String>(str.getStr());
-    }
-
-
-
     @Override
     public SMPLData<String> visitSMPLProgram(SMPLProgram sp, SMPLEnvironment<SMPLData<String>> arg)
             throws SMPLException {
+        // TODO Auto-generated method stub
         return null;
     }
-
 
     @Override
     public SMPLData<String> visitStmtSequence(StmtSequence seq, SMPLEnvironment<SMPLData<String>> state)
             throws SMPLException {
+        // TODO Auto-generated method stub
         return null;
     }
 
-
-
     @Override
-    public <A extends ASTExp<A>> SMPLData<String> visitSMPLAssignment(SMPLAssignment<A> assignment,
-            SMPLEnvironment<SMPLData<String>> state) throws SMPLException {
-        return null;
+    public SMPLData<String> visitASTVar(ASTVar<StringExp> var, SMPLEnvironment<SMPLData<String>> state)
+            throws SMPLException {
+        // TODO Auto-generated method stub
+        return state.get(var.getVar());
     }
 
-
-
     @Override
-    public <A extends ASTExp<A>> SMPLData<String> visitPrintStmt(PrintStmt<A> printStmt,
-            SMPLEnvironment<SMPLData<String>> state) throws SMPLException {
-        return null;
-    }
-
-
-
-    @Override
-    public <A extends ASTExp<A>> SMPLData<String> visitASTVar(ASTVar<A> var, SMPLEnvironment<SMPLData<String>> state)
+    public SMPLData<String> visitASTBinaryExp(ASTBinaryExp biExp, SMPLEnvironment<SMPLData<String>> state)
             throws SMPLException {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public SMPLData<String> visitASTUnaryExp(ASTUnaryExp urExp, SMPLEnvironment<SMPLData<String>> state)
+            throws SMPLException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public SMPLData<String> visitStringLit(StringLit str, SMPLEnvironment<SMPLData<String>> state)
+            throws SMPLException {
+        return str.getContext().equals("var") ? str.getVarExp().visit(this, state) : new SMPLData<String>(str.getStr(), "string");
     }
 
 }

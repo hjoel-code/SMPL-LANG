@@ -1,38 +1,36 @@
 package smpl.lang.bool;
 
 import smpl.lang.ASTExp;
+import smpl.lang.SMPLObject;
 import smpl.lang.visitors.*;
 import smpl.sys.SMPLException;
 
-public class BoolExp extends ASTExp<BoolExp> {
-    public Boolean value;
-    public String bType;
+public abstract class BoolExp extends ASTExp<BoolExp> implements SMPLObject {
 
 
-    public BoolExp(Boolean value) {
-        super("bool");
-        this.value = value;
+
+    private final String type;
+
+    public BoolExp() {
+        this.type = "bool";
     }
 
-    public BoolExp(String type) {
-        super("bool");
-        this.bType = type;
+    @Override
+    public void setType(String type) {
     }
 
-    public Boolean getValue() {
-        return value;
+    @Override
+    public String getType() {
+        return type;
     }
 
-    public String getbType() {
-        return bType;
-    }
+    public abstract <S, T> T visit(BoolVisitor<BoolExp, S, T> v, S state) throws SMPLException;
 
-    public <S, T> T visit(BoolVisitor<BoolExp, S, T> v, S state) throws SMPLException {
-        return v.visitBoolExp(this, state);
-    }
 
     @Override
     public <S, T> T visit(ASTVisitor<BoolExp, S, T> v, S state) throws SMPLException {
         return visit((BoolVisitor<BoolExp, S, T>)v, state);
     }
 }
+
+

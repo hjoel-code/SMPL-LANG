@@ -1,26 +1,33 @@
 package smpl.lang.string;
 
-
 import smpl.sys.SMPLException;
 import smpl.lang.ASTExp;
+import smpl.lang.SMPLObject;
 import smpl.lang.visitors.*;
 
-public abstract class StringExp extends ASTExp<StringExp>{
+public abstract class StringExp extends ASTExp<StringExp> implements SMPLObject {
 
-    private String sType;
+    private String type;
 
-    public StringExp(String type) {
-        super("string");
-        this.sType = type;
-      }
-    
+    public StringExp() {
+        this.type = "string";
+    }
 
+    @Override
+    public void setType(String type) {
+        this.type = type;
+    }
 
-      public String getsType() {
-          return sType;
-      }
-
+    @Override
+    public String getType() {
+        return type;
+    }
 
     public abstract <S, T> T visit(StringVisitor<StringExp, S, T> v, S state) throws SMPLException;
-      
+
+    @Override
+    public <S, T> T visit(ASTVisitor<StringExp, S, T> v, S state) throws SMPLException {
+        return visit( (StringVisitor<StringExp, S, T>) v, state);
+    }
+
 }
